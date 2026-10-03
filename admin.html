@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Billing Urdu - Complete Admin Panel</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 font-sans">
+
+    <!-- ================= 1. LOGIN SCREEN ================= -->
+    <div id="loginSection" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-sky-700">Admin Panel Login</h1>
+                <p class="text-slate-500 text-sm mt-1">Medical Billing Urdu Course</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Admin Email</label>
+                    <input type="email" id="adminEmail" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                    <input type="password" id="adminPassword" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-2.5 rounded-lg transition">Login to Dashboard</button>
+            </form>
+            <p id="loginError" class="text-red-500 text-sm text-center mt-3 hidden"></p>
+        </div>
+    </div>
+
+    <!-- ================= 2. MAIN DASHBOARD ================= -->
+    <div id="dashboardSection" class="hidden min-h-screen flex flex-col md:flex-row">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 bg-slate-900 text-white flex flex-col justify-between p-4 shadow-lg">
+            <div>
+                <div class="text-xl font-bold text-sky-400 mb-8 px-2">Billing Urdu Admin</div>
+                <nav class="space-y-2">
+                    <button onclick="switchTab('coursesTab')" class="w-full text-left px-4 py-2.5 rounded-lg bg-sky-600 text-white font-medium nav-btn" id="btn-coursesTab">📚 Courses & Lessons</button>
+                    <button onclick="switchTab('usersTab')" class="w-full text-left px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 transition nav-btn" id="btn-usersTab">👥 Users & Members</button>
+                    <button onclick="switchTab('paymentsTab')" class="w-full text-left px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 transition nav-btn" id="btn-paymentsTab">💳 Payment Verification</button>
+                    <button onclick="switchTab('pagesTab')" class="w-full text-left px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 transition nav-btn" id="btn-pagesTab">📄 Manage Pages</button>
+                    <button onclick="switchTab('settingsTab')" class="w-full text-left px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 transition nav-btn" id="btn-settingsTab">⚙️ App Settings & Instructions</button>
+                </nav>
+            </div>
+            <div class="pt-4 border-t border-slate-800">
+                <button onclick="handleLogout()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg text-sm transition">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+            
+            <!-- TAB 1: COURSES & LESSONS -->
+            <div id="coursesTab" class="tab-content space-y-8">
+                <h2 class="text-2xl font-bold text-slate-800">Manage Courses & Lessons</h2>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold text-slate-700 mb-4" id="courseFormTitle">Add New Course</h3>
+                    <form id="courseForm" onsubmit="saveCourse(event)" class="space-y-4 mb-6">
+                        <input type="hidden" id="editCourseId">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Course Title</label>
+                            <input type="text" id="courseTitle" required placeholder="e.g. Module 1: Basics" class="w-full px-3 py-2 border rounded-lg outline-none focus:border-sky-500">
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" id="courseSubmitBtn" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg text-sm transition">Add Course</button>
+                            <button type="button" id="courseCancelBtn" onclick="resetCourseForm()" class="hidden bg-slate-300 hover:bg-slate-400 text-slate-700 px-4 py-2 rounded-lg text-sm transition">Cancel</button>
+                        </div>
+                    </form>
+                    <h4 class="font-medium text-slate-700 mb-2">Existing Courses List</h4>
+                    <div id="coursesListContainer" class="space-y-2"><p class="text-slate-400 text-sm">Loading courses...</p></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold text-slate-700 mb-4" id="lessonFormTitle">Add New Lesson</h3>
+                    <form id="lessonForm" onsubmit="saveLesson(event)" class="space-y-4 mb-6">
+                        <input type="hidden" id="editLessonId">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Select Course</label>
+                                <select id="courseSelect" required class="w-full px-3 py-2 border rounded-lg outline-none focus:border-sky-500">
+                                    <option value="">-- Select Course --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Lesson Name</label>
+                                <input type="text" id="lessonName" required placeholder="Lesson title" class="w-full px-3 py-2 border rounded-lg outline-none focus:border-sky-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Lesson Content (Urdu Text)</label>
+                            <textarea id="lessonContent" rows="4" required placeholder="Yahan sabq likhein..." class="w-full px-3 py-2 border rounded-lg outline-none focus:border-sky-500"></textarea>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" id="lessonSubmitBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm transition">Save & Publish Lesson</button>
+                            <button type="button" id="lessonCancelBtn" onclick="resetLessonForm()" class="hidden bg-slate-300 hover:bg-slate-400 text-slate-700 px-4 py-2 rounded-lg text-sm transition">Cancel</button>
+                        </div>
+                    </form>
+                    <h4 class="font-medium text-slate-700 mb-2">All Lessons</h4>
+                    <div id="lessonsListContainer" class="space-y-2"><p class="text-slate-400 text-sm">Loading lessons...</p></div>
+                </div>
+            </div>
+
+            <!-- TAB 2: USERS & MEMBERS -->
+            <div id="usersTab" class="tab-content hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-slate-800">App Members Directory</h2>
+                    <button onclick="openAddUserModal()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg text-sm transition">+ Add New Member</button>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-md font-semibold text-sky-600 mb-3">🆓 Free Members</h3>
+                        <div class="overflow-x-auto"><table class="w-full text-left text-sm"><tbody id="freeUsersTable"><tr><td class="py-2 text-center text-slate-400 text-xs">Loading...</td></tr></tbody></table></div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-md font-semibold text-emerald-600 mb-3">⭐ Paid / Pro Members</h3>
+                        <div class="overflow-x-auto"><table class="w-full text-left text-sm"><tbody id="paidUsersTable"><tr><td class="py-2 text-center text-slate-400 text-xs">Loading...</td></tr></tbody></table></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: PAYMENT VERIFICATION -->
+            <div id="paymentsTab" class="tab-content hidden space-y-6">
+                <h2 class="text-2xl font-bold text-slate-800">Manual Payment Verification</h2>
+                <p class="text-slate-500 text-sm">Yeh wahan se users ki bheji gayi details hain jinhone payment ke baad form fill kiya hai:</p>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
+                                    <th class="p-3">User Email</th>
+                                    <th class="p-3">Sender Name</th>
+                                    <th class="p-3">Bank / Wallet</th>
+                                    <th class="p-3">Account No</th>
+                                    <th class="p-3">Amount</th>
+                                    <th class="p-3">TID / Transaction ID</th>
+                                    <th class="p-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentRequestsTable">
+                                <tr><td colspan="7" class="p-4 text-center text-slate-400">Loading payment requests...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: MANAGE PAGES -->
+            <div id="pagesTab" class="tab-content hidden space-y-6">
+                <h2 class="text-2xl font-bold text-slate-800">Dynamic Pages Management</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-1">
+                        <h3 class="text-lg font-semibold text-slate-700 mb-4" id="pageFormTitle">Add New Page</h3>
+                        <form id="pageForm" onsubmit="savePage(event)" class="space-y-4">
+                            <input type="hidden" id="editPageId">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Page Title</label>
+                                <input type="text" id="pageTitle" required placeholder="e.g. Privacy Policy" class="w-full px-3 py-2 border rounded-lg outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Page Content</label>
+                                <textarea id="pageContent" rows="5" required placeholder="Page details..." class="w-full px-3 py-2 border rounded-lg outline-none"></textarea>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="submit" id="pageSubmitBtn" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-lg transition">Create Page</button>
+                                <button type="button" id="pageCancelBtn" onclick="resetPageForm()" class="hidden bg-slate-300 hover:bg-slate-400 text-slate-700 px-3 py-2 rounded-lg transition">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-2">
+                        <h3 class="text-lg font-semibold text-slate-700 mb-4">Existing Pages</h3>
+                        <div class="space-y-3" id="pagesListContainer"><p class="text-slate-400 text-sm">Loading pages...</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: SETTINGS & PAYMENT INSTRUCTIONS -->
+            <div id="settingsTab" class="tab-content hidden space-y-6">
+                <h2 class="text-2xl font-bold text-slate-800">App Settings & Payment Instructions</h2>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 max-w-xl">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">App Play Store / Download Link</label>
+                        <input type="text" id="appShareLink" value="https://play.google.com/store/apps/details?id=com.medicalbilling.urdu" class="w-full px-3 py-2 border rounded-lg outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Announcement Text (App me show hoga)</label>
+                        <input type="text" id="announcementText" placeholder="New lessons available!" class="w-full px-3 py-2 border rounded-lg outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">💳 Payment Instructions (EasyPaisa / JazzCash / Bank Details)</label>
+                        <textarea id="paymentInstructions" rows="5" placeholder="EasyPaisa Account: 0300-1234567 (Naam: Tanveer Ahmed). Fee jama karwane ke baad neeche diye gaye form me apni details likhein." class="w-full px-3 py-2 border rounded-lg outline-none"></textarea>
+                    </div>
+                    <button onclick="saveSettings()" class="bg-sky-600 hover:bg-sky-700 text-white px-5 py-2 rounded-lg transition">Save Settings & Instructions</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ================= MODAL: ADD/EDIT USER ================= -->
+    <div id="userModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+            <h3 class="text-lg font-bold text-slate-800 mb-4" id="userModalTitle">Add New Member</h3>
+            <form id="userModalForm" onsubmit="saveUser(event)" class="space-y-4">
+                <input type="hidden" id="editUserId">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Full Name</label>
+                    <input type="text" id="userName" required placeholder="Member name" class="w-full px-3 py-2 border rounded-lg outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Contact Number</label>
+                    <input type="text" id="userPhone" required placeholder="03001234567" class="w-full px-3 py-2 border rounded-lg outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Member Email</label>
+                    <input type="email" id="userEmail" required placeholder="user@example.com" class="w-full px-3 py-2 border rounded-lg outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Password <span id="passwordHint" class="text-xs text-slate-400">(Naya account ke liye zaroori hai)</span></label>
+                    <input type="text" id="userPassword" placeholder="Password yahan likhein ya update karein" class="w-full px-3 py-2 border rounded-lg outline-none font-mono text-sm bg-slate-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Membership Status</label>
+                    <select id="userStatusSelect" class="w-full px-3 py-2 border rounded-lg outline-none">
+                        <option value="free">Free Member</option>
+                        <option value="pro">Paid / Pro Member</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeUserModal()" class="bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm">Cancel</button>
+                    <button type="submit" class="bg-sky-600 text-white px-4 py-2 rounded-lg text-sm">Save Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= FIREBASE LOGIC ================= -->
+    <script type="module">
+        import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updatePassword, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7-0rQJYyKQNA_Mi-AL3jLAHEPZWNfq4c",
+            authDomain: "medicalbillingurdu.firebaseapp.com",
+            projectId: "medicalbillingurdu",
+            storageBucket: "medicalbillingurdu.firebasestorage.app",
+            messagingSenderId: "515367780043",
+            appId: "1:515367780043:web:a94fef287b69a0b904654e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.handleLogin = function(e) {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const errorEl = document.getElementById('loginError');
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => {
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('dashboardSection').classList.remove('hidden');
+                    loadAllData();
+                })
+                .catch((error) => {
+                    errorEl.textContent = error.message;
+                    errorEl.classList.remove('hidden');
+                });
+        };
+
+        window.handleLogout = function() {
+            signOut(auth).then(() => {
+                document.getElementById('dashboardSection').classList.add('hidden');
+                document.getElementById('loginSection').classList.remove('hidden');
+            });
+        };
+
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-sky-600', 'text-white');
+                btn.classList.add('text-slate-300');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.add('bg-sky-600', 'text-white');
+            activeBtn.classList.remove('text-slate-300');
+
+            if(tabId === 'coursesTab') { loadCourses(); loadLessons(); }
+            if(tabId === 'usersTab') loadUsers();
+            if(tabId === 'paymentsTab') loadPaymentRequests();
+            if(tabId === 'pagesTab') loadPages();
+            if(tabId === 'settingsTab') loadSettings();
+        };
+
+        function loadAllData() {
+            loadCourses();
+            loadLessons();
+            loadUsers();
+            loadPaymentRequests();
+            loadPages();
+            loadSettings();
+        }
+
+        // --- COURSES & LESSONS ---
+        window.saveCourse = async function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editCourseId').value;
+            const title = document.getElementById('courseTitle').value;
+            try {
+                if(editId) {
+                    await updateDoc(doc(db, "courses", editId), { title });
+                    alert("Course updated!");
+                } else {
+                    await addDoc(collection(db, "courses"), { title, createdAt: serverTimestamp() });
+                    alert("Course added!");
+                }
+                resetCourseForm();
+                loadCourses();
+            } catch (err) { alert("Error: " + err.message); }
+        };
+
+        async function loadCourses() {
+            const container = document.getElementById('coursesListContainer');
+            const select = document.getElementById('courseSelect');
+            container.innerHTML = '<p class="text-slate-400 text-sm">Loading...</p>';
+            select.innerHTML = '<option value="">-- Select Course --</option>';
+            try {
+                const querySnapshot = await getDocs(collection(db, "courses"));
+                container.innerHTML = '';
+                querySnapshot.forEach((d) => {
+                    let c = d.data(), id = d.id;
+                    let opt = document.createElement('option');
+                    opt.value = id; opt.textContent = c.title;
+                    select.appendChild(opt);
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between p-2.5 border rounded-lg bg-slate-50 text-sm">
+                            <span class="font-medium text-slate-700">${c.title}</span>
+                            <div class="space-x-2">
+                                <button onclick="editCourse('${id}', '${c.title}')" class="text-sky-600 hover:underline">Edit</button>
+                                <button onclick="deleteCourse('${id}')" class="text-red-500 hover:underline">Delete</button>
+                            </div>
+                        </div>`;
+                });
+            } catch (err) { container.innerHTML = '<p class="text-red-400 text-sm">Error loading courses.</p>'; }
+        }
+
+        window.editCourse = function(id, title) {
+            document.getElementById('editCourseId').value = id;
+            document.getElementById('courseTitle').value = title;
+            document.getElementById('courseFormTitle').textContent = 'Edit Course';
+            document.getElementById('courseSubmitBtn').textContent = 'Update Course';
+            document.getElementById('courseCancelBtn').classList.remove('hidden');
+        };
+
+        window.resetCourseForm = function() {
+            document.getElementById('editCourseId').value = '';
+            document.getElementById('courseForm').reset();
+            document.getElementById('courseFormTitle').textContent = 'Add New Course';
+            document.getElementById('courseSubmitBtn').textContent = 'Add Course';
+            document.getElementById('courseCancelBtn').classList.add('hidden');
+        };
+
+        window.deleteCourse = async function(id) {
+            if(confirm("Delete course?")) {
+                await deleteDoc(doc(db, "courses", id));
+                loadCourses();
+            }
+        };
+
+        window.saveLesson = async function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editLessonId').value;
+            const courseId = document.getElementById('courseSelect').value;
+            const name = document.getElementById('lessonName').value;
+            const content = document.getElementById('lessonContent').value;
+            try {
+                if(editId) {
+                    await updateDoc(doc(db, "lessons", editId), { courseId, name, content });
+                    alert("Lesson updated!");
+                } else {
+                    await addDoc(collection(db, "lessons"), { courseId, name, content, createdAt: serverTimestamp() });
+                    alert("Lesson published!");
+                }
+                resetLessonForm();
+                loadLessons();
+            } catch (err) { alert("Error: " + err.message); }
+        };
+
+        async function loadLessons() {
+            const container = document.getElementById('lessonsListContainer');
+            container.innerHTML = '<p class="text-slate-400 text-sm">Loading lessons...</p>';
+            try {
+                const querySnapshot = await getDocs(collection(db, "lessons"));
+                container.innerHTML = '';
+                querySnapshot.forEach((d) => {
+                    let l = d.data(), id = d.id;
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between p-3 border rounded-lg bg-slate-50 text-sm">
+                            <div>
+                                <h4 class="font-semibold text-slate-800">${l.name}</h4>
+                                <p class="text-xs text-slate-500 truncate max-w-xs">${l.content}</p>
+                            </div>
+                            <div class="space-x-2">
+                                <button onclick="editLesson('${id}', '${l.courseId}', '${l.name}', '${l.content.replace(/'/g, "\\'")}')" class="text-sky-600 hover:underline">Edit</button>
+                                <button onclick="deleteLesson('${id}')" class="text-red-500 hover:underline">Delete</button>
+                            </div>
+                        </div>`;
+                });
+            } catch (err) { container.innerHTML = '<p class="text-red-400 text-sm">Error loading lessons.</p>'; }
+        }
+
+        window.editLesson = function(id, courseId, name, content) {
+            document.getElementById('editLessonId').value = id;
+            document.getElementById('courseSelect').value = courseId;
+            document.getElementById('lessonName').value = name;
+            document.getElementById('lessonContent').value = content;
+            document.getElementById('lessonFormTitle').textContent = 'Edit Lesson';
+            document.getElementById('lessonSubmitBtn').textContent = 'Update Lesson';
+            document.getElementById('lessonCancelBtn').classList.remove('hidden');
+        };
+
+        window.resetLessonForm = function() {
+            document.getElementById('editLessonId').value = '';
+            document.getElementById('lessonForm').reset();
+            document.getElementById('lessonFormTitle').textContent = 'Add New Lesson';
+            document.getElementById('lessonSubmitBtn').textContent = 'Save & Publish Lesson';
+            document.getElementById('lessonCancelBtn').classList.add('hidden');
+        };
+
+        window.deleteLesson = async function(id) {
+            if(confirm("Delete lesson?")) {
+                await deleteDoc(doc(db, "lessons", id));
+                loadLessons();
+            }
+        };
+
+        // --- USERS MANAGEMENT (With Visible Password & Edit/Delete) ---
+        async function loadUsers() {
+            const freeTable = document.getElementById('freeUsersTable');
+            const paidTable = document.getElementById('paidUsersTable');
+            freeTable.innerHTML = '<tr><td class="py-2 text-center text-slate-400 text-xs">Loading...</td></tr>';
+            paidTable.innerHTML = '<tr><td class="py-2 text-center text-slate-400 text-xs">Loading...</td></tr>';
+            try {
+                const querySnapshot = await getDocs(collection(db, "users"));
+                freeTable.innerHTML = ''; paidTable.innerHTML = '';
+                let freeCount = 0, paidCount = 0;
+                
+                querySnapshot.forEach((d) => {
+                    let u = d.data(), id = d.id;
+                    let email = u.email || 'Unknown';
+                    let name = u.name || 'No Name';
+                    let phone = u.phone || 'N/A';
+                    let pass = u.password || 'Not saved';
+                    
+                    let userInfoHtml = `<b>${name}</b><br><span class="text-slate-500">${email}</span><br>Phone: ${phone}<br><span class="text-xs text-sky-600 font-mono">Pass: ${pass}</span>`;
+                    
+                    let actionButtons = `
+                        <div class="flex flex-col items-end gap-1">
+                            <div class="space-x-1">
+                                <button onclick="editUser('${id}', '${name}', '${phone}', '${email}', '${pass}', ${u.isPro === true})" class="text-sky-600 hover:underline text-xs">Edit</button>
+                                <button onclick="deleteUser('${id}')" class="text-red-500 hover:underline text-xs">Delete</button>
+                            </div>
+                    `;
+
+                    if(u.isPro === true || u.isPro === 'pro') {
+                        paidCount++;
+                        actionButtons += `<button onclick="toggleUserPro('${id}', false)" class="text-red-500 text-[10px] hover:underline">Make Free</button></div>`;
+                        paidTable.innerHTML += `<tr class="border-b"><td class="py-2 text-xs text-slate-700">${userInfoHtml}</td><td class="py-2 text-right">${actionButtons}</td></tr>`;
+                    } else {
+                        freeCount++;
+                        actionButtons += `<button onclick="toggleUserPro('${id}', true)" class="bg-sky-600 text-white px-1.5 py-0.5 rounded text-[10px]">Make Pro</button></div>`;
+                        freeTable.innerHTML += `<tr class="border-b"><td class="py-2 text-xs text-slate-700">${userInfoHtml}</td><td class="py-2 text-right">${actionButtons}</td></tr>`;
+                    }
+                });
+
+                if(freeCount === 0) freeTable.innerHTML = '<tr><td class="py-2 text-center text-slate-400 text-xs">No free users.</td></tr>';
+                if(paidCount === 0) paidTable.innerHTML = '<tr><td class="py-2 text-center text-slate-400 text-xs">No pro members.</td></tr>';
+            } catch (err) { console.error(err); }
+        }
+
+        window.openAddUserModal = function() {
+            document.getElementById('editUserId').value = '';
+            document.getElementById('userModalTitle').textContent = 'Add New Member';
+            document.getElementById('userName').value = '';
+            document.getElementById('userPhone').value = '';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('passwordHint').textContent = '(Naya account ke liye zaroori hai)';
+            document.getElementById('userEmail').removeAttribute('disabled');
+            document.getElementById('userStatusSelect').value = 'free';
+            document.getElementById('userModal').classList.remove('hidden');
+        };
+
+        window.editUser = function(id, name, phone, email, pass, isPro) {
+            document.getElementById('editUserId').value = id;
+            document.getElementById('userModalTitle').textContent = 'Edit Member Details & Password';
+            document.getElementById('userName').value = name;
+            document.getElementById('userPhone').value = phone;
+            document.getElementById('userEmail').value = email;
+            document.getElementById('userEmail').setAttribute('disabled', 'true');
+            document.getElementById('userPassword').value = pass !== 'Not saved' ? pass : '';
+            document.getElementById('passwordHint').textContent = '(Password dekh sakte hain ya naya likh kar update kar sakte hain)';
+            document.getElementById('userStatusSelect').value = isPro ? 'pro' : 'free';
+            document.getElementById('userModal').classList.remove('hidden');
+        };
+
+        window.closeUserModal = function() { 
+            document.getElementById('userModal').classList.add('hidden'); 
+        };
+
+        window.saveUser = async function(e) {
+            e.preventDefault();
+            let editId = document.getElementById('editUserId').value;
+            let name = document.getElementById('userName').value.trim();
+            let phone = document.getElementById('userPhone').value.trim();
+            let email = document.getElementById('userEmail').value.trim();
+            let password = document.getElementById('userPassword').value.trim();
+            let statusSelect = document.getElementById('userStatusSelect').value;
+            let isPro = statusSelect === 'pro';
+            let proStatus = isPro ? 'approved' : 'none';
+
+            try {
+                if(editId) {
+                    // Update existing user in Firestore (including password so admin can view/send it)
+                    let updateData = {
+                        name: name,
+                        phone: phone,
+                        isPro: isPro,
+                        proStatus: proStatus
+                    };
+                    if(password) {
+                        updateData.password = password;
+                    }
+                    await updateDoc(doc(db, "users", editId), updateData);
+                    alert("Member details & password updated successfully!");
+                } else {
+                    if(!password) {
+                        alert("Password lazmi hai naye user ke liye!");
+                        return;
+                    }
+                    // Secondary app to prevent admin logout when creating user in Firebase Auth
+                    const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp_" + Date.now());
+                    const secondaryAuth = getAuth(secondaryApp);
+                    const userCred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+                    let uid = userCred.user.uid;
+
+                    // Save details and password in Firestore 'users' collection
+                    await setDoc(doc(db, "users", uid), {
+                        uid: uid,
+                        name: name,
+                        phone: phone,
+                        email: email,
+                        password: password,
+                        isPro: isPro,
+                        proStatus: proStatus,
+                        createdAt: serverTimestamp()
+                    });
+
+                    await deleteApp(secondaryApp);
+                    alert("Member added successfully!");
+                }
+                closeUserModal();
+                loadUsers();
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        };
+
+        window.deleteUser = async function(id) {
+            if(confirm("Are you sure you want to delete this user from Firestore records?")) {
+                try {
+                    await deleteDoc(doc(db, "users", id));
+                    alert("User record deleted successfully!");
+                    loadUsers();
+                } catch(err) {
+                    alert("Error: " + err.message);
+                }
+            }
+        };
+
+        window.toggleUserPro = async function(id, status) {
+            await updateDoc(doc(db, "users", id), { 
+                isPro: status,
+                proStatus: status ? 'approved' : 'none'
+            });
+            loadUsers();
+        };
+
+        // --- PAYMENT VERIFICATION TAB ---
+        async function loadPaymentRequests() {
+            const tableBody = document.getElementById('paymentRequestsTable');
+            tableBody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">Loading requests...</td></tr>';
+            try {
+                const querySnapshot = await getDocs(collection(db, "paymentRequests"));
+                tableBody.innerHTML = '';
+                let count = 0;
+                querySnapshot.forEach((d) => {
+                    count++;
+                    let p = d.data();
+                    let id = d.id;
+                    tableBody.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-3 font-medium text-slate-700">${p.userEmail || 'N/A'}</td>
+                            <td class="p-3">${p.senderName || 'N/A'}</td>
+                            <td class="p-3">${p.bankName || 'N/A'}</td>
+                            <td class="p-3">${p.accountNo || 'N/A'}</td>
+                            <td class="p-3 font-semibold text-emerald-600">${p.amount || 'N/A'}</td>
+                            <td class="p-3 bg-amber-50 font-mono text-xs">${p.tid || 'N/A'}</td>
+                            <td class="p-3 text-right space-x-2">
+                                <button onclick="approvePayment('${id}', '${p.userId || ''}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-xs">Approve Pro</button>
+                                <button onclick="deletePaymentRequest('${id}')" class="bg-red-500 hover:bg-red-600 text-white px-2.5 py-1 rounded text-xs">Reject</button>
+                            </td>
+                        </tr>`;
+                });
+                if(count === 0) tableBody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">No pending payment submissions found.</td></tr>';
+            } catch(err) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Error: ${err.message}</td></tr>`;
+            }
+        }
+
+        window.approvePayment = async function(requestId, userId) {
+            if(confirm("Are you sure you want to approve this payment and upgrade user to Pro?")) {
+                try {
+                    if(userId) {
+                        await updateDoc(doc(db, "users", userId), { 
+                            isPro: true,
+                            proStatus: 'approved'
+                        });
+                    }
+                    await deleteDoc(doc(db, "paymentRequests", requestId));
+                    alert("Payment approved and user upgraded to Pro!");
+                    loadPaymentRequests();
+                } catch(err) { alert("Error: " + err.message); }
+            }
+        };
+
+        window.deletePaymentRequest = async function(id) {
+            if(confirm("Reject and delete this request?")) {
+                await deleteDoc(doc(db, "paymentRequests", id));
+                loadPaymentRequests();
+            }
+        };
+
+        // --- PAGES ---
+        window.savePage = async function(e) {
+            e.preventDefault();
+            let editId = document.getElementById('editPageId').value;
+            let title = document.getElementById('pageTitle').value;
+            let content = document.getElementById('pageContent').value;
+            if(editId) {
+                await updateDoc(doc(db, "pages", editId), { title, content });
+                alert("Page updated!");
+            } else {
+                await addDoc(collection(db, "pages"), { title, content, createdAt: serverTimestamp() });
+                alert("Page created!");
+            }
+            resetPageForm();
+            loadPages();
+        };
+
+        async function loadPages() {
+            const container = document.getElementById('pagesListContainer');
+            container.innerHTML = '<p class="text-slate-400 text-sm">Loading...</p>';
+            try {
+                const querySnapshot = await getDocs(collection(db, "pages"));
+                container.innerHTML = '';
+                querySnapshot.forEach((d) => {
+                    let p = d.data(), id = d.id;
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between p-3 border rounded-lg bg-slate-50 text-sm">
+                            <div><h4 class="font-semibold text-slate-800">${p.title}</h4></div>
+                            <div class="space-x-2">
+                                <button onclick="editPage('${id}', '${p.title}', '${p.content.replace(/'/g, "\\'")}')" class="text-sky-600 hover:underline">Edit</button>
+                                <button onclick="deletePage('${id}')" class="text-red-500 hover:underline">Delete</button>
+                            </div>
+                        </div>`;
+                });
+            } catch (err) { container.innerHTML = '<p class="text-red-400 text-sm">Error loading pages.</p>'; }
+        }
+
+        window.editPage = function(id, title, content) {
+            document.getElementById('editPageId').value = id;
+            document.getElementById('pageTitle').value = title;
+            document.getElementById('pageContent').value = content;
+            document.getElementById('pageFormTitle').textContent = 'Edit Page';
+            document.getElementById('pageSubmitBtn').textContent = 'Update Page';
+            document.getElementById('pageCancelBtn').classList.remove('hidden');
+        };
+
+        window.resetPageForm = function() {
+            document.getElementById('editPageId').value = '';
+            document.getElementById('pageForm').reset();
+            document.getElementById('pageFormTitle').textContent = 'Add New Member / Page';
+            document.getElementById('pageSubmitBtn').textContent = 'Create Page';
+            document.getElementById('pageCancelBtn').classList.add('hidden');
+        };
+
+        window.deletePage = async function(id) {
+            if(confirm("Delete page?")) {
+                await deleteDoc(doc(db, "pages", id));
+                loadPages();
+            }
+        };
+
+        // --- SETTINGS ---
+        window.saveSettings = async function() {
+            let shareLink = document.getElementById('appShareLink').value;
+            let announcement = document.getElementById('announcementText').value;
+            let paymentInstructions = document.getElementById('paymentInstructions').value;
+            await setDoc(doc(db, "settings", "appConfig"), { shareLink, announcement, paymentInstructions });
+            alert("Settings & Instructions saved successfully!");
+        };
+
+        async function loadSettings() {
+            let docSnap = await getDoc(doc(db, "settings", "appConfig"));
+            if(docSnap.exists()) {
+                let d = docSnap.data();
+                if(d.shareLink) document.getElementById('appShareLink').value = d.shareLink;
+                if(d.announcement) document.getElementById('announcementText').value = d.announcement;
+                if(d.paymentInstructions) document.getElementById('paymentInstructions').value = d.paymentInstructions;
+            }
+        }
+    </script>
+</body>
+</html>
